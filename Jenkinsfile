@@ -38,12 +38,12 @@ pipeline {
             }
         }
         stage('sonar scan'){
-            def scannerHome = tool 'Sonar-8.1'
             steps{
                 script{
-                    withSonarQubeEnv('sonar-server')
+                    def scannerHome = tool 'Sonar-8.1'
+                    withSonarQubeEnv('sonar-server'){
                         sh '${scannerHome}/bin/sonar-scanner'
-
+                    }
                 }
             }
         }
