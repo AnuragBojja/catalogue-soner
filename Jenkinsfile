@@ -55,12 +55,12 @@ pipeline {
                         // Check if the Quality Gate status is not 'OK'
                         if (qg.status != 'OK') {
                             error "Pipeline aborted due to Quality Gate failure: ${qg.status}"
+                        }
                     }
                 }
             }
         }
     }
-
     post {
         always {
             echo "This run Evey time"
