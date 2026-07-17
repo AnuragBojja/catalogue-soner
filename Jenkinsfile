@@ -26,7 +26,14 @@ pipeline {
         stage('Install Dependancies'){
             steps{
                 sh '''
-                echo "version is: $APP_VERSION"
+                    npm install
+                '''
+            }
+        }
+        stage('unit test'){
+            steps{
+                sh'''
+                    npm test
                 '''
             }
         }
