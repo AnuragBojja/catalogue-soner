@@ -37,5 +37,32 @@ pipeline {
                 '''
             }
         }
+        stage('sonar scan'){
+            def scannerHome = tool 'Sonar-8.1'
+            steps{
+                script{
+                    withSonarQubeEnv('sonar-server')
+                        sh '${scannerHome}/bin/sonar-scanner'
+
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "This run Evey time"
+        }
+        success {
+            echo "current build is Success"
+            // slackSend / emailext go here (plugins)
+        }
+        failure {
+            echo "❌ Build failed — check stage logs above."
+            // emailext subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}", to: 'you@example.com', body: '...'
+        }
+        // cleanup {
+        //     cleanWs()          // wipe workspace (Workspace Cleanup plugin)
+        // }
     }
 }
