@@ -41,7 +41,7 @@ pipeline {
             environment {
                 GITHUB_OWNER = 'AnuragBojja'
                 GITHUB_REPO  = 'catalogue-soner'
-                GITHUB_TOKEN = credentials('github_token')
+                GITHUB_TOKEN = credentials('github-token')
             }
             steps {
                 script {
