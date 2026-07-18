@@ -37,29 +37,72 @@ pipeline {
                 '''
             }
         }
-        // stage('sonar scan'){
-        //     steps{
-        //         script{
-        //             def scannerHome = tool 'sonar-8.1'
-        //             withSonarQubeEnv('sonar-server'){
-        //                 sh "${scannerHome}/bin/sonar-scanner"
-        //             }
-        //         }
-        //     }
-        // }
-        // stage('quality gate'){
-        //     steps{
-        //         timeout(time: 10, unit: 'MINUTES') {
-        //             script{
-        //                 def qg = waitForQualityGate()
-        //                 // Check if the Quality Gate status is not 'OK'
-        //                 if (qg.status != 'OK') {
-        //                     error "Pipeline aborted due to Quality Gate failure: ${qg.status}"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Check Dependabot Alerts'){
+            environment {
+                GITHUB_OWNER = 'AnuragBojja'
+                GITHUB_REPO  = 'catalogue-soner'
+                GITHUB_TOKEN = credentials('github_tocken')
+            }
+            steps {
+                script {
+                    sh '''
+                        set -e
+
+                        echo "Fetching open Dependabot alerts..."
+
+                        curl -fsS -L \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                        -H "X-GitHub-Api-Version: 2022-11-28" \
+                        "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dependabot/alerts?state=open&per_page=100" \
+                        -o dependabot_alerts.json
+
+                        echo "Dependabot response saved to dependabot_alerts.json"
+                    '''
+
+                    def alerts = readJSON file: 'dependabot_alerts.json'
+
+                    if (alerts.isEmpty()) {
+                        echo 'No open Dependabot alerts found.'
+                        return
+                    }
+
+                    def blockingAlerts = []
+
+                    alerts.each { alert ->
+                        def dependency = alert.dependency.package.name
+                        def ecosystem = alert.dependency.package.ecosystem
+                        def severity = alert.security_advisory.severity
+                        def summary = alert.security_advisory.summary
+                        def cve = alert.security_advisory.cve_id ?: 'Not available'
+                        def vulnerableVersions =
+                            alert.security_vulnerability.vulnerable_version_range
+                        def patchedVersion =
+                            alert.security_vulnerability.first_patched_version?.identifier ?: 'Not available'
+                        def manifest = alert.dependency.manifest_path
+                        def alertUrl = alert.html_url
+
+                        echo """
+                        --------------------------------------------------
+                        Dependency       : ${dependency}
+                        Ecosystem        : ${ecosystem}
+                        Severity         : ${severity}
+                        Summary          : ${summary}
+                        CVE              : ${cve}
+                        Manifest         : ${manifest}
+                        Vulnerable range : ${vulnerableVersions}
+                        Patched version  : ${patchedVersion}
+                        Alert URL        : ${alertUrl}
+                        --------------------------------------------------
+                        """.stripIndent()
+
+                        if (severity in ['high', 'critical']) {
+                            blockingAlerts.add(alert)
+                        }
+                    }
+                }
+            }
+        }
     }
     post {
         always {
