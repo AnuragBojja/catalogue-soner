@@ -24,6 +24,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Install Dependancies'){
             steps{
                 sh '''
@@ -31,6 +32,7 @@ pipeline {
                 '''
             }
         }
+
         stage('unit test'){
             steps{
                 sh'''
@@ -38,6 +40,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Check Dependabot Alerts'){
             environment {
                 GITHUB_OWNER = 'AnuragBojja'
