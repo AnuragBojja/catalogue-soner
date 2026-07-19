@@ -7,7 +7,7 @@ RUN npm install
 
 
 FROM node:20.20.2-alpine3.22
-RUN apk update && apk upgrade --no-cache
+# RUN apk update && apk upgrade --no-cache
 WORKDIR /opt/server
 COPY --from=build /opt/server /opt/server
 EXPOSE 8080
