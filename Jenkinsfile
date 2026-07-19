@@ -11,6 +11,7 @@ pipeline {
         PROJECT = 'roboshop'
         COMPONENT = 'catalogue'
         AWS_REGION = 'us-east-1'
+        AWS_ACC_ID = '793770371113'
     }
     stages {
         stage('Read Version') {
@@ -100,6 +101,18 @@ pipeline {
                             blockingAlerts.add(alert)
                         }
                     }
+                }
+            }
+        }
+
+        stage(build){
+            steps{
+                withAWS(region: 'us-east-1', credentials: 'aws-cred'){
+                    sh """
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACC_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                        docker build -t ${AWS_ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${APP_VERSION} .
+                        docker images
+                    """
                 }
             }
         }

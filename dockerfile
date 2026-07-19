@@ -1,0 +1,19 @@
+# FROM node:20
+FROM node:20.20.2-alpine3.22 AS build
+WORKDIR /opt/server
+COPY *.js .
+COPY *.json .
+RUN npm install
+
+
+FROM node:20.20.2-alpine3.22
+WORKDIR /opt/server
+COPY --from=build /opt/server /opt/server
+EXPOSE 8080
+RUN addgroup -S roboshop && adduser -S roboshop -G roboshop
+ENV MONGO=true \
+    MONGO_URL="mongodb://mongodb:27017/catalogue" 
+RUN chown -R roboshop:roboshop /opt/server
+USER roboshop
+CMD ["server.js"]
+ENTRYPOINT [ "node" ]
